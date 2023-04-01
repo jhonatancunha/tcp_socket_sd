@@ -108,7 +108,7 @@ class ClientThread extends Thread {
     private void lsCommand() {
     	String file = "";    	
     	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "ls"};
+	    	String[] commands = new String[] {"/bin/bash", "-c", "find . -maxdepth 1 -type f"};
 	    	Process proc = new ProcessBuilder(commands).start();
 	    	
 	    	
@@ -120,7 +120,7 @@ class ClientThread extends Thread {
 	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
 	       
 	        while((file = reader.readLine()) != null) {
-	        	fileList.add(file);
+	        	fileList.add(file.substring(2, file.length()));
 	        }
 
 	        
