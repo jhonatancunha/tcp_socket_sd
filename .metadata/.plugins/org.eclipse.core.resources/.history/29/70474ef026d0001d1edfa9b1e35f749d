@@ -109,7 +109,7 @@ class ClientThread extends Thread {
         	 
         	 
             String buffer = "";
-            loop: while (true) {
+            while (true) {
                 buffer = in.readUTF();   /* aguarda o envio de dados */
 
                 
@@ -119,7 +119,7 @@ class ClientThread extends Thread {
 	                	buffer = pwdCommand();
 	                	break;
 	                case "EXIT":
-	                	break loop;
+	                	break;
 	            	default:
 	            		buffer = "Comando não encontrado";
 	            		break;

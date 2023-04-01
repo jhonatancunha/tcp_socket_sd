@@ -109,20 +109,20 @@ class ClientThread extends Thread {
         	 
         	 
             String buffer = "";
-            loop: while (true) {
+            while (true) {
                 buffer = in.readUTF();   /* aguarda o envio de dados */
 
                 
                 switch(buffer) {
-	                case "PWD":
-	                	System.out.println("Comando pwd");
-	                	buffer = pwdCommand();
-	                	break;
-	                case "EXIT":
-	                	break loop;
-	            	default:
-	            		buffer = "Comando não encontrado";
-	            		break;
+                case "PWD":
+                	System.out.println("Comando pwd");
+                	buffer = pwdCommand();
+                	break;
+                case "EXIT":
+                	break;
+            	default:
+            		buffer = "Comando não encontrado";
+            		break;
                 }
                 
                 
