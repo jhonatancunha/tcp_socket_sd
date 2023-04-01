@@ -5,6 +5,8 @@ package tcp;
  * conexao, cria uma thread, recebe uma mensagem e finaliza a conexao
  */
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.io.*;
 
 public class TCPServer {
@@ -69,10 +71,8 @@ class ClientThread extends Thread {
     	}
     }
     
-    private String pwdCommand() {
-    	
-    	String pwd = "";
-    	
+    private void pwdCommand() {
+    	String pwd = "";    	
     	try {
 	    	String[] commands = new String[] {"/bin/bash", "-c", "pwd"};
 	    	Process proc = new ProcessBuilder(commands).start();
@@ -96,9 +96,57 @@ class ClientThread extends Thread {
 		}
     	
     	
-		return pwd;
+    	try {
+			this.out.writeUTF(pwd);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 
+    
+    private void lsCommand() {
+    	String file = "";    	
+    	try {
+	    	String[] commands = new String[] {"/bin/bash", "-c", "ls"};
+	    	Process proc = new ProcessBuilder(commands).start();
+	    	
+	    	
+	    	// create a new ArrayList
+	          List<String> fileList= new ArrayList<String>();
+	    	
+	    	// Read the output
+	        BufferedReader reader =  
+	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
+	       
+	        while((file = reader.readLine()) != null) {
+	        	fileList.add(file);
+	        }
+
+	        
+	        Integer numberOfFiles = fileList.size();
+	        this.out.writeUTF(numberOfFiles.toString());
+	        
+	        for (String fileItem : fileList) {
+	        	System.out.println(fileItem);
+ 	        	this.out.writeUTF(fileItem);
+	    	}
+
+	       
+	        proc.waitFor();
+	    				
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	
+    	 
+    }
+    
     /* metodo executado ao iniciar a thread - start() */
     @Override
     public void run() {
@@ -116,17 +164,21 @@ class ClientThread extends Thread {
                 switch(buffer) {
 	                case "PWD":
 	                	System.out.println("Comando pwd");
-	                	buffer = pwdCommand();
+	                	this.pwdCommand();
+	                	break;
+	                case "GETFILES":
+	                	this.lsCommand();
 	                	break;
 	                case "EXIT":
 	                	break loop;
 	            	default:
 	            		buffer = "Comando não encontrado";
+	            		out.writeUTF(buffer);
 	            		break;
                 }
                 
                 
-                out.writeUTF(buffer);
+                
             }
         } catch (EOFException eofe) {
             System.out.println("EOF: " + eofe.getMessage());
