@@ -108,46 +108,7 @@ class ClientThread extends Thread {
     private void lsCommand() {
     	String file = "";    	
     	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "find . -maxdepth 1 -type f"};
-	    	Process proc = new ProcessBuilder(commands).start();
-	    	
-	    	
-	    	// create a new ArrayList
-	          List<String> fileList= new ArrayList<String>();
-	    	
-	    	// Read the output
-	        BufferedReader reader =  
-	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
-	       
-	        while((file = reader.readLine()) != null) {
-	        	fileList.add(file.substring(2, file.length()));
-	        }
-
-	        
-	        Integer numberOfFiles = fileList.size();
-	        this.out.writeUTF(numberOfFiles.toString());
-	        
-	        for (String fileItem : fileList) {
-	        	System.out.println(fileItem);
- 	        	this.out.writeUTF(fileItem);
-	    	}
-
-	       
-	        proc.waitFor();
-	    				
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-    
-    private void getDirs() {
-    	String file = "";    	
-    	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "ls -d */"};
+	    	String[] commands = new String[] {"/bin/bash", "-c", "ls"};
 	    	Process proc = new ProcessBuilder(commands).start();
 	    	
 	    	
@@ -181,6 +142,8 @@ class ClientThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    	
+    	
     	 
     }
     
@@ -205,9 +168,6 @@ class ClientThread extends Thread {
 	                	break;
 	                case "GETFILES":
 	                	this.lsCommand();
-	                	break;
-	                case "GETDIRS":
-	                	this.getDirs();
 	                	break;
 	                case "EXIT":
 	                	break loop;
