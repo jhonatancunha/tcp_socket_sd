@@ -1,0 +1,4 @@
+INDEX VERSION 1.131+/home/jhonatancunha/eclipse-workspace/Entrega TCP - Atividade 1/.metadata/.plugins/org.eclipse.jdt.core
+1865797976.index
+2486757792.index
+1402089441.index

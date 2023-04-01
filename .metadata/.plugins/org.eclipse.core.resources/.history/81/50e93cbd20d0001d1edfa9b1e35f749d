@@ -1,0 +1,129 @@
+package tcp;
+
+/**
+ * TCPClient: Cliente para conexao TCP
+ * Descricao: Envia uma informacao ao servidor e recebe confirmações ECHO
+ * Ao enviar "PARAR", a conexão é finalizada.
+ */
+
+import java.net.*;
+import java.io.*;
+import java.util.Scanner;
+
+import javax.xml.crypto.Data;
+
+public class TCPClient {
+	public static void main (String args[]) {
+	    Socket clientSocket = null; // socket do cliente
+            
+            
+            try{
+                /* Endereço e porta do servidor */
+                int serverPort = 6666;   
+                InetAddress serverAddr = InetAddress.getByName("127.0.0.1");
+                
+                /* conecta com o servidor */  
+                clientSocket = new Socket(serverAddr, serverPort);  
+                
+                /* cria objetos de leitura e escrita */
+                DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+            
+                SendMessageClientThread clientSend = new SendMessageClientThread(clientSocket, out);
+                ReceiveMessageClientThread clientReceive = new ReceiveMessageClientThread(clientSocket, in);
+               
+
+                clientReceive.start();
+                clientSend.start();
+
+                clientReceive.join();
+
+	    }catch (Exception ue){
+            System.out.println("Socket:" + ue.getMessage());
+        } finally {
+            try {
+                clientSocket.close();
+            } catch (IOException ioe) {
+                System.out.println("IO: " + ioe);;
+            }
+        }
+     } //main
+} //class
+
+class SendMessageClientThread extends Thread {
+
+    DataOutputStream out;
+    Socket clientSocket;
+
+    public SendMessageClientThread(Socket clientSocket, DataOutputStream out){
+        this.out = out;
+        this.clientSocket = clientSocket;
+    }
+
+    @Override
+    public void run(){
+        try{
+            Scanner reader = new Scanner(System.in); // ler mensagens via teclado
+
+            String buffer = "";
+            while (true) {
+                System.out.print("Mensagem: ");
+                buffer = reader.nextLine(); // lê mensagem via teclado
+                
+                if (buffer.equals("PARAR")) break;
+            
+                out.writeUTF(buffer);      	// envia a mensagem para o servidor
+    
+            } 
+    } catch (UnknownHostException ue){
+    System.out.println("Socket:" + ue.getMessage());
+        } catch (IOException io){
+    System.out.println("IO:" + io.getMessage());
+        } finally {
+            try {
+                out.close();
+                clientSocket.close();
+            } catch (IOException ioe) {
+                System.out.println("IOE: " + ioe);;
+            }
+        } 
+    }
+}
+
+class ReceiveMessageClientThread extends Thread {
+
+    DataInputStream in;
+    Socket clientSocket;
+
+    public ReceiveMessageClientThread(Socket clientSocket, DataInputStream in){
+        this.in = in;
+        this.clientSocket = clientSocket;
+    }
+
+    @Override
+    public void run(){
+        try{
+            String buffer = "";
+            while (true) {
+                buffer = in.readUTF();   /* aguarda o envio de dados */
+                
+                if (buffer.equals("PARAR")) break;
+            
+                System.out.println("\nServidor disse: " + buffer);
+                System.out.print("Mensagem: ");
+            } 
+    } catch (EOFException eofe) {
+        System.out.println("EOF: " + eofe.getMessage());
+    } catch (IOException ioe) {
+        System.out.println("IOE: " + ioe.getMessage());
+    } finally {
+            try {
+                in.close();
+                clientSocket.close();
+            } catch (IOException ioe) {
+                System.out.println("IOE: " + ioe);;
+            }
+        } 
+    }
+
+}
