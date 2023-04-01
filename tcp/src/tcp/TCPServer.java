@@ -59,45 +59,24 @@ class ClientThread extends Thread {
             this.clientSocket = clientSocket;
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
+            
+            File theDir = new File("./jhonatan");
+        	if (!theDir.exists()){
+        	    theDir.mkdirs();
+        	}
+            
+        	// aqui devemos concatenar o nome da pasta do usuario
+            this.currentPath = System.getProperty("user.dir")+"/jhonatan";
         } catch (IOException ioe) {
             System.out.println("Connection:" + ioe.getMessage());
         } //catch
     } //construtor
     
-    private void getOrCreateDir() {
-    	File theDir = new File("./jhonatan");
-    	if (!theDir.exists()){
-    	    theDir.mkdirs();
-    	}
-    }
     
     private void pwdCommand() {
-    	String pwd = "";    	
-    	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "pwd"};
-	    	Process proc = new ProcessBuilder(commands).start();
-	    	
-	    	// Read the output
-	
-	        BufferedReader reader =  
-	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
-	
 
-	        pwd = reader.readLine();
-	       
-	        proc.waitFor();
-	    				
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	
     	try {
-			this.out.writeUTF(pwd);
+			this.out.writeUTF(this.currentPath);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -106,38 +85,26 @@ class ClientThread extends Thread {
 
     
     private void lsCommand() {
-    	String file = "";    	
     	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "find . -maxdepth 1 -type f"};
-	    	Process proc = new ProcessBuilder(commands).start();
-	    	
-	    	
-	    	// create a new ArrayList
+	          File directory = new File(this.currentPath);
+	          File[] arrayFiles = directory.listFiles();
+	          
+	          // create a new ArrayList
 	          List<String> fileList= new ArrayList<String>();
-	    	
-	    	// Read the output
-	        BufferedReader reader =  
-	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
-	       
-	        while((file = reader.readLine()) != null) {
-	        	fileList.add(file.substring(2, file.length()));
-	        }
+	          
+			  for (File f : arrayFiles) {
+			          if (f.isFile()) {
+			        	  fileList.add(f.getName());
+			          }
+			  }
 
-	        
-	        Integer numberOfFiles = fileList.size();
-	        this.out.writeUTF(numberOfFiles.toString());
-	        
-	        for (String fileItem : fileList) {
-	        	System.out.println(fileItem);
- 	        	this.out.writeUTF(fileItem);
-	    	}
-
-	       
-	        proc.waitFor();
-	    				
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			  Integer numberOfFiles = fileList.size();
+		      this.out.writeUTF(numberOfFiles.toString());
+				
+			  for (String fileItem : fileList) {
+				  System.out.println(fileItem);
+				  this.out.writeUTF(fileItem);
+			  }			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -145,38 +112,51 @@ class ClientThread extends Thread {
     }
     
     private void getDirs() {
+    	try {
+	          File directory = new File(this.currentPath);
+	          File[] arrayFiles = directory.listFiles();
+	          
+	          // create a new ArrayList
+	          List<String> fileList= new ArrayList<String>();
+	          
+			  for (File f : arrayFiles) {
+			          if (f.isDirectory()) {
+			        	  fileList.add(f.getName());
+			          }
+			  }
+
+			  Integer numberOfFiles = fileList.size();
+		      this.out.writeUTF(numberOfFiles.toString());
+				
+			  for (String fileItem : fileList) {
+				  System.out.println(fileItem);
+				  this.out.writeUTF(fileItem);
+			  }			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	 
+    }
+    
+    private void cdCommand(String path) {
     	String file = "";    	
     	try {
-	    	String[] commands = new String[] {"/bin/bash", "-c", "ls -d */"};
-	    	Process proc = new ProcessBuilder(commands).start();
-	    	
-	    	
-	    	// create a new ArrayList
-	          List<String> fileList= new ArrayList<String>();
+	    	String[] commands = new String[] {"/bin/bash", "-c", "cd .."};
+	    	Process proc = Runtime.getRuntime().exec(commands);
 	    	
 	    	// Read the output
 	        BufferedReader reader =  
 	              new BufferedReader(new InputStreamReader(proc.getInputStream()));
-	       
-	        while((file = reader.readLine()) != null) {
-	        	fileList.add(file);
+
+	    	while((file = reader.readLine()) != null) {
+	    		System.out.println("FILE: " + file);
 	        }
-
-	        
-	        Integer numberOfFiles = fileList.size();
-	        this.out.writeUTF(numberOfFiles.toString());
-	        
-	        for (String fileItem : fileList) {
-	        	System.out.println(fileItem);
- 	        	this.out.writeUTF(fileItem);
-	    	}
-
 	       
-	        proc.waitFor();
+	       
+	        
+	        this.out.writeUTF("SUCESSO");
 	    				
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -189,22 +169,27 @@ class ClientThread extends Thread {
     public void run() {
         try {
         	
-        	this.getOrCreateDir();
         	
-        	 
+        	System.out.println("args: " + this.currentPath);
         	 
             String buffer = "";
             loop: while (true) {
                 buffer = in.readUTF();   /* aguarda o envio de dados */
 
+                String[] args = buffer.split(" ", 2);
+                System.out.println("args: " + args[0]);
                 
-                switch(buffer) {
+                switch(args[0]) {
 	                case "PWD":
 	                	System.out.println("Comando pwd");
 	                	this.pwdCommand();
 	                	break;
 	                case "GETFILES":
 	                	this.lsCommand();
+	                	break;
+	                case "CHDIR":
+	                	// verificar tamanho do args se for menor q 2 voltar erro caso contrario voltar sucesso
+	                	this.cdCommand(args[1]);
 	                	break;
 	                case "GETDIRS":
 	                	this.getDirs();
