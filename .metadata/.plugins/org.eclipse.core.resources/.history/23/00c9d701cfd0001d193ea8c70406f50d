@@ -173,7 +173,7 @@ class ClientThread extends Thread {
 
     		if(Files.isDirectory(newPath)) {
     			this.out.writeUTF("SUCESSO");
-    			this.currentPath = newPwd;
+    			this.currentPath = newPath;
     		}else {
     			this.out.writeUTF("ERRO");
     		}

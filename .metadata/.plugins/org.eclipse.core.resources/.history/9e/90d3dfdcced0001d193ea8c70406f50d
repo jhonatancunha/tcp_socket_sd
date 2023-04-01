@@ -147,7 +147,7 @@ class ClientThread extends Thread {
     	try {
     		String[] argsArray = args.split("/");
     		
-    		if(argsArray.length == 0) {
+    		if(commandArgs.length == 0) {
     			this.out.writeUTF("ERRO");
     			return;
     		}
@@ -155,7 +155,7 @@ class ClientThread extends Thread {
     		String[] currentDir = this.currentPath.split("/");
     		List<String> listCurrentDir = new ArrayList<String>(Arrays.asList(currentDir));
 
-    		for (String p : argsArray) {
+    		for (String p : commandArgs) {
     			if(!p.equals(".")) {
 
     				if(p.equals("..")) {
@@ -168,17 +168,13 @@ class ClientThread extends Thread {
 		    } 	
     		
 
-    		String newPwd = String.join("/", listCurrentDir);
-    		Path newPath = Paths.get(newPwd);
+    		String teste = String.join("/", listCurrentDir);
+    		Path dawdwa = Paths.get(teste);
 
-    		if(Files.isDirectory(newPath)) {
-    			this.out.writeUTF("SUCESSO");
-    			this.currentPath = newPwd;
-    		}else {
-    			this.out.writeUTF("ERRO");
-    		}
+    		System.out.println(Files.isDirectory(dawdwa));
 	       
 	        
+	        this.out.writeUTF("SUCESSO");
 	    				
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

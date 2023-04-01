@@ -143,11 +143,12 @@ class ClientThread extends Thread {
     	 
     }
     
-    private void cdCommand(String args) {
+    private void cdCommand(String path) {
+    	String file = "";    	
     	try {
-    		String[] argsArray = args.split("/");
+    		String[] newPath = path.split("/");
     		
-    		if(argsArray.length == 0) {
+    		if(newPath.length == 0) {
     			this.out.writeUTF("ERRO");
     			return;
     		}
@@ -155,11 +156,11 @@ class ClientThread extends Thread {
     		String[] currentDir = this.currentPath.split("/");
     		List<String> listCurrentDir = new ArrayList<String>(Arrays.asList(currentDir));
 
-    		for (String p : argsArray) {
+    		for (String p : newPath) {
     			if(!p.equals(".")) {
 
     				if(p.equals("..")) {
-    					listCurrentDir.remove(listCurrentDir.size() - 1);
+    					listCurrentDir.remove(listCurrentDir.size())
     				}else {
     					listCurrentDir.add(p);
     				}
@@ -168,17 +169,13 @@ class ClientThread extends Thread {
 		    } 	
     		
 
-    		String newPwd = String.join("/", listCurrentDir);
-    		Path newPath = Paths.get(newPwd);
+    		String teste = String.join("/", listCurrentDir);
+    		Path dawdwa = Paths.get(teste);
 
-    		if(Files.isDirectory(newPath)) {
-    			this.out.writeUTF("SUCESSO");
-    			this.currentPath = newPwd;
-    		}else {
-    			this.out.writeUTF("ERRO");
-    		}
+    		System.out.println(Files.isDirectory(teste));
 	       
 	        
+	        this.out.writeUTF("SUCESSO");
 	    				
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

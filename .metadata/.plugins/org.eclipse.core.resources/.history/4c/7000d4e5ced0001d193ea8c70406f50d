@@ -168,17 +168,13 @@ class ClientThread extends Thread {
 		    } 	
     		
 
-    		String newPwd = String.join("/", listCurrentDir);
-    		Path newPath = Paths.get(newPwd);
+    		String teste = String.join("/", listCurrentDir);
+    		Path dawdwa = Paths.get(teste);
 
-    		if(Files.isDirectory(newPath)) {
-    			this.out.writeUTF("SUCESSO");
-    			this.currentPath = newPwd;
-    		}else {
-    			this.out.writeUTF("ERRO");
-    		}
+    		System.out.println(Files.isDirectory(dawdwa));
 	       
 	        
+	        this.out.writeUTF("SUCESSO");
 	    				
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
