@@ -8,7 +8,6 @@ package ex1;
 
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.io.*;
 import java.util.Scanner;
 
@@ -21,6 +20,13 @@ public class TCPClient {
 	public static final String ANSI_RESET = "\u001B[0m";
 	public static String user = "user";
 
+	
+	public ByteBuffer createHeader() {
+        ByteBuffer header = ByteBuffer.allocate(259); // tamanho do cabeçalho de solicitação
+        
+        return header;
+	}
+	
 	public static void main (String args[]) {
 	    Socket clientSocket = null; // socket do cliente
             
@@ -40,6 +46,8 @@ public class TCPClient {
                 /* protocolo de comunicação */
                 Scanner reader = new Scanner(System.in); // ler mensagens via teclado
                 String buffer = "";
+                
+                ByteBuffer header = createHeader(); // tamanho do cabeçalho de solicitação
                 
                 while (true) {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);

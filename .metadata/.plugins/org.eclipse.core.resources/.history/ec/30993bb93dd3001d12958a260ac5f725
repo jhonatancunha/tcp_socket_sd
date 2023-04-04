@@ -7,8 +7,6 @@ package ex1;
  */
 
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.io.*;
 import java.util.Scanner;
 

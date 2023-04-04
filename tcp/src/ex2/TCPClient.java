@@ -1,4 +1,4 @@
-package ex1;
+package ex2;
 
 /**
  * TCPClient: Cliente para conexao TCP
@@ -21,6 +21,20 @@ public class TCPClient {
 	public static final String ANSI_RESET = "\u001B[0m";
 	public static String user = "user";
 
+	
+	public static ByteBuffer createHeader(int messageType, int commandId, int sizeFile, String filename) {
+        ByteBuffer header = ByteBuffer.allocate(259); // tamanho do cabeçalho de solicitação
+        header.order(ByteOrder.BIG_ENDIAN);
+
+        
+        header.putInt(0, messageType);
+        header.putInt(1, commandId);
+        header.putInt(2, sizeFile);
+        header.put(3, filename.getBytes());
+        
+        return header;
+	}
+	
 	public static void main (String args[]) {
 	    Socket clientSocket = null; // socket do cliente
             
@@ -41,6 +55,10 @@ public class TCPClient {
                 Scanner reader = new Scanner(System.in); // ler mensagens via teclado
                 String buffer = "";
                 
+                ByteBuffer header = createHeader(1, 2, 40, "Jhonatan");
+                
+                Integer teste = header.getInt(1);
+
                 while (true) {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
                     buffer = reader.nextLine(); // lê mensagem via teclado
