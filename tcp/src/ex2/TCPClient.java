@@ -8,11 +8,9 @@ package ex2;
 
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.io.*;
 import java.util.Scanner;
 
-import javax.xml.crypto.Data;
 
 
 
@@ -22,14 +20,16 @@ public class TCPClient {
 	public static String user = "user";
 
 	
-	public static ByteBuffer createHeader(int messageType, int commandId, int sizeFile, String filename) {
+	public static ByteBuffer createHeader(Integer messageType, Integer commandId, Integer sizeFile, String filename) {
         ByteBuffer header = ByteBuffer.allocate(259); // tamanho do cabeçalho de solicitação
-        header.order(ByteOrder.BIG_ENDIAN);
+        // header.order(ByteOrder.LITTLE_ENDIAN);
+
+
 
         
-        header.putInt(0, messageType);
-        header.putInt(1, commandId);
-        header.putInt(2, sizeFile);
+        header.put(0, messageType.byteValue());
+        header.put(1, commandId.byteValue());
+        header.put(2, sizeFile.byteValue());
         header.put(3, filename.getBytes());
         
         return header;
@@ -56,9 +56,10 @@ public class TCPClient {
                 String buffer = "";
                 
                 ByteBuffer header = createHeader(1, 2, 40, "Jhonatan");
-                
-                Integer teste = header.getInt(1);
 
+                Byte value0 = header.get(0);            
+                Byte value1 = header.get(1);
+                Byte value2 = header.get(2);
                 while (true) {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
                     buffer = reader.nextLine(); // lê mensagem via teclado
