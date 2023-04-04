@@ -17,6 +17,7 @@ import javax.xml.crypto.Data;
 public class TCPClient {
 	public static final String ANSI_GREEN = "\u001B[32m";
 	public static final String ANSI_RESET = "\u001B[0m";
+	
 
 	public static void main (String args[]) {
 	    Socket clientSocket = null; // socket do cliente

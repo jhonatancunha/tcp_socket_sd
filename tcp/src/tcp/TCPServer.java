@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.io.*;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 
 public class TCPServer {
 
@@ -58,6 +60,8 @@ class ClientThread extends Thread {
     
     String currentPath;
 
+    Auth authenticator = new Auth();
+    
     public ClientThread(Socket clientSocket) {
         try {
             this.clientSocket = clientSocket;
@@ -187,6 +191,20 @@ class ClientThread extends Thread {
     	 
     }
     
+    private void connectCommand(String args) {
+    	try {
+			String[] argsArray = args.split(",");
+			String hashedPassword = authenticator.getHash(argsArray[1]);
+			
+			boolean isAuthenticated = authenticator.verifyUser(argsArray[0], hashedPassword);
+			
+			String result = isAuthenticated ? "SUCCESS" : "ERROR";
+			this.out.writeUTF(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
     /* metodo executado ao iniciar a thread - start() */
     @Override
     public void run() {
@@ -203,6 +221,9 @@ class ClientThread extends Thread {
                 System.out.println("args: " + args[0]);
                 
                 switch(args[0]) {
+                	case "CONNECT":
+                		this.connectCommand(args[1]);
+                		break;
 	                case "PWD":
 	                	System.out.println("Comando pwd");
 	                	this.pwdCommand();
