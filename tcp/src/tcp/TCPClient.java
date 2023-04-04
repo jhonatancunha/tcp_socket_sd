@@ -17,7 +17,7 @@ import javax.xml.crypto.Data;
 public class TCPClient {
 	public static final String ANSI_GREEN = "\u001B[32m";
 	public static final String ANSI_RESET = "\u001B[0m";
-	
+	public static String user = "user";
 
 	public static void main (String args[]) {
 	    Socket clientSocket = null; // socket do cliente
@@ -40,11 +40,11 @@ public class TCPClient {
                 String buffer = "";
                 
                 while (true) {
-                    System.out.print(ANSI_GREEN+"jhonatan$ "+ANSI_RESET);
+                    System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
                     buffer = reader.nextLine(); // lê mensagem via teclado
-                
+                    
                     out.writeUTF(buffer);      	// envia a mensagem para o servidor
-		
+                    
                     if (buffer.equals("PARAR")) break;
                     
                     buffer = in.readUTF();      // aguarda resposta do servidor

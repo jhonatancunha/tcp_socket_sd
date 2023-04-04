@@ -61,6 +61,7 @@ class ClientThread extends Thread {
     String currentPath;
 
     Auth authenticator = new Auth();
+    public boolean isConnected = false;
     
     public ClientThread(Socket clientSocket) {
         try {
@@ -198,8 +199,13 @@ class ClientThread extends Thread {
 			
 			boolean isAuthenticated = authenticator.verifyUser(argsArray[0], hashedPassword);
 			
-			String result = isAuthenticated ? "SUCCESS" : "ERROR";
-			this.out.writeUTF(result);
+			if (isAuthenticated) {				
+				this.out.writeUTF("SUCCESS");
+				isConnected = true;
+			} else {
+				this.out.writeUTF("ERROR");
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -225,18 +231,35 @@ class ClientThread extends Thread {
                 		this.connectCommand(args[1]);
                 		break;
 	                case "PWD":
-	                	System.out.println("Comando pwd");
-	                	this.pwdCommand();
+	                	if (isConnected) {	                		
+	                		System.out.println("Comando pwd");
+	                		this.pwdCommand();
+	                	} else {
+	                		out.writeUTF("Use o comando CONNECT primeiro");
+	                	}
 	                	break;
 	                case "GETFILES":
-	                	this.lsCommand();
+	                	if (isConnected) {
+	                		
+	                		this.lsCommand();
+	                	} else {
+	                		out.writeUTF("Use o comando CONNECT primeiro");
+	                	}
 	                	break;
 	                case "CHDIR":
-	                	// verificar tamanho do args se for menor q 2 voltar erro caso contrario voltar sucesso
-	                	this.cdCommand(args[1]);
+	                	if (isConnected) {
+	                		// verificar tamanho do args se for menor q 2 voltar erro caso contrario voltar sucesso
+	                		this.cdCommand(args[1]);
+                		} else {
+                			out.writeUTF("Use o comando CONNECT primeiro");
+                		}
 	                	break;
 	                case "GETDIRS":
-	                	this.getDirs();
+	                	if (isConnected) {
+	                		this.getDirs();
+                		} else {
+                			out.writeUTF("Use o comando CONNECT primeiro");
+                		}
 	                	break;
 	                case "EXIT":
 	                	break loop;
