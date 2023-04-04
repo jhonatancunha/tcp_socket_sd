@@ -235,7 +235,7 @@ class ClientThread extends Thread {
 	                		System.out.println("Comando pwd");
 	                		this.pwdCommand();
 	                	} else {
-	                		out.writeUTF("Use o comando CONNECT primeiro");
+	                		out.writeUTF("Você precisa estar logado. Use o comando CONNECT <username>,<senha> primeiro!");
 	                	}
 	                	break;
 	                case "GETFILES":
@@ -243,7 +243,7 @@ class ClientThread extends Thread {
 	                		
 	                		this.lsCommand();
 	                	} else {
-	                		out.writeUTF("Use o comando CONNECT primeiro");
+	                		out.writeUTF("Você precisa estar logado. Use o comando CONNECT <username>,<senha> primeiro!");
 	                	}
 	                	break;
 	                case "CHDIR":
@@ -251,14 +251,14 @@ class ClientThread extends Thread {
 	                		// verificar tamanho do args se for menor q 2 voltar erro caso contrario voltar sucesso
 	                		this.cdCommand(args[1]);
                 		} else {
-                			out.writeUTF("Use o comando CONNECT primeiro");
+                			out.writeUTF("Você precisa estar logado. Use o comando CONNECT <username>,<senha> primeiro!");
                 		}
 	                	break;
 	                case "GETDIRS":
 	                	if (isConnected) {
 	                		this.getDirs();
                 		} else {
-                			out.writeUTF("Use o comando CONNECT primeiro");
+                			out.writeUTF("Você precisa estar logado. Use o comando CONNECT <username>,<senha> primeiro!");
                 		}
 	                	break;
 	                case "EXIT":
