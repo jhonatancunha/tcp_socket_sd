@@ -5,15 +5,10 @@ package ex2;
  * conexao, cria uma thread, recebe uma mensagem e finaliza a conexao
  */
 import java.net.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.List;
 import java.io.*;
-import java.math.BigInteger;
-import java.security.MessageDigest;
 
 public class TCPServer {
 
@@ -41,6 +36,7 @@ public class TCPServer {
                 c.start();
             } //while
 
+
         } catch (IOException e) {
             System.out.println("Listen socket:" + e.getMessage());
         } //catch
@@ -53,6 +49,8 @@ public class TCPServer {
  * aguarda msgs clientes e responde com a msg + :OK
  */
 class ClientThread extends Thread {
+	private static final byte SUCCESS = 1;
+	private static final byte ERROR = 2;
 
     DataInputStream in;
     DataOutputStream out;
@@ -69,223 +67,121 @@ class ClientThread extends Thread {
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
             
-            File theDir = new File("./src/ex1/jhonatan");
-        	if (!theDir.exists()){
-        	    theDir.mkdirs();
-        	}
+            File theDir = new File("./src/ex2/jhonatan");
+						if (!theDir.exists()){
+								theDir.mkdirs();
+						}
             
-        	// aqui devemos concatenar o nome da pasta do usuario
-            this.currentPath = System.getProperty("user.dir")+"/src/ex1/jhonatan";
+        		// aqui devemos concatenar o nome da pasta do usuario
+            this.currentPath = System.getProperty("user.dir")+"/src/ex2/jhonatan";
         } catch (IOException ioe) {
             System.out.println("Connection:" + ioe.getMessage());
         } //catch
     } //construtor
     
-    
-    private void pwdCommand() {
 
-    	try {
-			this.out.writeUTF(this.currentPath);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
 
-    
-    private void lsCommand() {
-    	try {
-	          File directory = new File(this.currentPath);
-	          File[] arrayFiles = directory.listFiles();
-	          
-	          // create a new ArrayList
-	          List<String> fileList= new ArrayList<String>();
-	          
-			  for (File f : arrayFiles) {
-			          if (f.isFile()) {
-			        	  fileList.add(f.getName());
-			          }
-			  }
+		public ByteBuffer createResponseHeader(byte messageType, byte commandId, byte statusCode) {
+			ByteBuffer header = ByteBuffer.allocate(3);
+			header.order(ByteOrder.BIG_ENDIAN);
 
-			  Integer numberOfFiles = fileList.size();
-		      this.out.writeUTF(numberOfFiles.toString());
-				
-			  for (String fileItem : fileList) {
-				  System.out.println(fileItem);
-				  this.out.writeUTF(fileItem);
-			  }			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
-    
-    private void getDirs() {
-    	try {
-	          File directory = new File(this.currentPath);
-	          File[] arrayFiles = directory.listFiles();
-	          
-	          // create a new ArrayList
-	          List<String> fileList= new ArrayList<String>();
-	          
-			  for (File f : arrayFiles) {
-			          if (f.isDirectory()) {
-			        	  fileList.add(f.getName());
-			          }
-			  }
-
-			  Integer numberOfFiles = fileList.size();
-		      this.out.writeUTF(numberOfFiles.toString());
-				
-			  for (String fileItem : fileList) {
-				  System.out.println(fileItem);
-				  this.out.writeUTF(fileItem);
-			  }			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	 
-    }
-    
-    private void cdCommand(String args) {
-    	try {
-    		String[] argsArray = args.split("/");
-    		
-    		if(argsArray.length == 0) {
-    			this.out.writeUTF("ERRO");
-    			return;
-    		}
-    		
-    		String[] currentDir = this.currentPath.split("/");
-    		List<String> listCurrentDir = new ArrayList<String>(Arrays.asList(currentDir));
-
-    		for (String p : argsArray) {
-    			if(!p.equals(".")) {
-
-    				if(p.equals("..")) {
-    					listCurrentDir.remove(listCurrentDir.size() - 1);
-    				}else {
-    					listCurrentDir.add(p);
-    				}
-    				
-    			}
-		    } 	
-    		
-
-    		String newPwd = String.join("/", listCurrentDir);
-    		Path newPath = Paths.get(newPwd);
-
-    		if(Files.isDirectory(newPath)) {
-    			this.out.writeUTF("SUCESSO");
-    			this.currentPath = newPwd;
-    		}else {
-    			this.out.writeUTF("ERRO");
-    		}
-	       
-	        
-	    				
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	 
-    }
-    
-    private void connectCommand(String args) {
-    	try {
-			String[] argsArray = args.split(",");
-			String hashedPassword = authenticator.getHash(argsArray[1]);
+			header.put(0, messageType);
+			header.put(1, commandId);
+			header.put(2, statusCode);
 			
-			boolean isAuthenticated = authenticator.verifyUser(argsArray[0], hashedPassword);
-			
-			if (isAuthenticated) {				
-				this.out.writeUTF("SUCCESS");
-				isConnected = true;
+			return header;
+		}
+
+		public byte addFile(String filename, String content) throws IOException{
+			String path = this.currentPath+"/"+filename;
+			File file = new File(path);
+
+			if (file.createNewFile()) {
+				 FileWriter writer = new FileWriter(path, true);
+				 BufferedWriter buffer = new BufferedWriter(writer);
+				 buffer.write(content);
+				 buffer.flush();
+				 buffer.close();
+				return SUCCESS;
 			} else {
-				this.out.writeUTF("ERROR");
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+				return ERROR;
+			}	
 		}
-    }
-    
+
+		public byte removeFile(String filename){
+			String path = this.currentPath+"/"+filename;
+			File file = new File(path);
+
+			if (file.exists()) {
+					if (file.delete()) {
+							return SUCCESS;
+					} 
+			} 
+				
+			return ERROR;
+		}
+
     /* metodo executado ao iniciar a thread - start() */
     @Override
     public void run() {
-        try {
-        	
-        	
-        	System.out.println("args: " + this.currentPath);
-        	 
-            String buffer = "";
-            loop: while (true) {
-                buffer = in.readUTF();   /* aguarda o envio de dados */
+			try {        	 
 
-                String[] args = buffer.split(" ", 2);
-                System.out.println("args: " + args[0]);
-                
-                switch(args[0]) {
-                	case "CONNECT":
-                		this.connectCommand(args[1]);
-                		break;
-	                case "PWD":
-	                	if (isConnected) {	                		
-	                		System.out.println("Comando pwd");
-	                		this.pwdCommand();
-	                	} else {
-	                		out.writeUTF("Use o comando CONNECT primeiro");
-	                	}
-	                	break;
-	                case "GETFILES":
-	                	if (isConnected) {
-	                		
-	                		this.lsCommand();
-	                	} else {
-	                		out.writeUTF("Use o comando CONNECT primeiro");
-	                	}
-	                	break;
-	                case "CHDIR":
-	                	if (isConnected) {
-	                		// verificar tamanho do args se for menor q 2 voltar erro caso contrario voltar sucesso
-	                		this.cdCommand(args[1]);
-                		} else {
-                			out.writeUTF("Use o comando CONNECT primeiro");
-                		}
-	                	break;
-	                case "GETDIRS":
-	                	if (isConnected) {
-	                		this.getDirs();
-                		} else {
-                			out.writeUTF("Use o comando CONNECT primeiro");
-                		}
-	                	break;
-	                case "EXIT":
-	                	break loop;
-	            	default:
-	            		buffer = "Comando não encontrado";
-	            		out.writeUTF(buffer);
-	            		break;
-                }
-                
-                
-                
-            }
-        } catch (EOFException eofe) {
-            System.out.println("EOF: " + eofe.getMessage());
-        } catch (IOException ioe) {
-            System.out.println("IOE: " + ioe.getMessage());
-        } finally {
-            try {
-                in.close();
-                out.close();
-                clientSocket.close();
-            } catch (IOException ioe) {
-                System.err.println("IOE: " + ioe);
-            }
-        }
-        
-        System.out.println("Thread comunicação cliente finalizada.");
-    } //run
-} //class
+				System.out.println("args: " + this.currentPath);
+
+				int headerSize = 259;
+				
+				while (true) {
+					byte[] bytes = new byte[headerSize];
+					this.in.read(bytes);
+					ByteBuffer header = ByteBuffer.wrap(bytes);
+					header.order(ByteOrder.BIG_ENDIAN);
+
+					// ***********************************
+					// Obtendo cabeçalho de solicitação
+					// ***********************************
+					byte messageType = header.get(0);
+					byte commandId = header.get(1);
+					byte filenameSize = header.get(2);
+					byte[] byteFilename = Arrays.copyOfRange(bytes, 3, filenameSize+3);
+					String filename = new String(byteFilename);
+				
+
+					byte statusCode = ERROR;
+					switch(commandId){
+						case 1: // ADDFILE
+								statusCode = addFile(filename, "conteudo");
+								break;
+						case 2: // DELETE
+								statusCode = removeFile(filename);
+								break;
+						case 3: // GETFILESLIST
+								break;
+						case 4: // GETFILE
+								break;
+					}
+
+					// ***********************************************
+					// Enviado cabeçalho de resposta com tamanho fixo
+					// ***********************************************
+					byte responseCode = 2;
+					ByteBuffer responseHeader = this.createResponseHeader(responseCode, commandId, statusCode);
+					bytes = responseHeader.array();
+					int size = responseHeader.limit();
+					out.write(bytes, 0, size);      
+				}
+			} catch (EOFException eofe) {
+					System.out.println("EOF: " + eofe.getMessage());
+			} catch (IOException ioe) {
+					System.out.println("IOE: " + ioe.getMessage());
+			} finally {
+				try {
+					in.close();
+					out.close();
+					clientSocket.close();
+				} catch (IOException ioe) {
+					System.err.println("IOE: " + ioe);
+				}
+			}
+			System.out.println("Thread comunicação cliente finalizada.");
+	}
+}
