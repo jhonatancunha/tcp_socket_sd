@@ -34,13 +34,26 @@ public class TCPClient {
         return header;
 	}
 
-    public static void createFile(String filename, String content){
-
+    public static void printResponseStatusCode(byte commandId, byte statusCode){
+        switch (commandId){
+            case 1: // ADDFILE
+                if(statusCode == 2) System.out.println("Erro ao tentar criar arquivo :(");
+                else System.out.println("Arquivo criado com sucesso :)");
+                break;
+            case 2: // DELETE
+                if(statusCode == 2) System.out.println("Erro ao tentar deletar arquivo :(");
+                else System.out.println("Arquivo deletar com sucesso :)");
+                break;
+            case 3: // GETFILESLIST
+                break;
+            case 4: // GETFILE
+                break;
+        }
     }
 	
 	public static void main (String args[]) {
 	    Socket clientSocket = null; // socket do cliente
-        Scanner reader = null;
+        Scanner reader = new Scanner(System.in);
             
             try{
                 /* Endereço e porta do servidor */
@@ -57,7 +70,6 @@ public class TCPClient {
                 /* protocolo de comunicação */
                 String buffer = "";
                 byte[] bytes = null;
-                reader = new Scanner(System.in); // ler mensagens via teclado
                 
                 loop:while (true) {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
@@ -109,10 +121,12 @@ public class TCPClient {
                     byte responseCommandId = responseHeader.get(1);
                     byte responseStatusCode = responseHeader.get(2);
 
-                    System.out.println("responseMessageType: "+ responseMessageType
-                    +" responseCommandId: "+responseCommandId
-                    +" responseStatusCode: "+responseStatusCode);          
+                    // System.out.println("responseMessageType: "+ responseMessageType
+                    // +" responseCommandId: "+responseCommandId
+                    // +" responseStatusCode: "+responseStatusCode);          
 
+
+                    printResponseStatusCode(responseCommandId, responseStatusCode);
 
                     // boolean isNumber = buffer.matches("[0-9]+");
                     
@@ -132,14 +146,15 @@ public class TCPClient {
 
 	    }catch (Exception ue){
             System.out.println("Socket:" + ue.getMessage());
-        } finally {
-            reader.close();
-            try {
-                clientSocket.close();
-            } catch (IOException ioe) {
-                System.out.println("IO: " + ioe);;
-            }
-        }
+        } 
+        // finally {
+        //     reader.close();
+        //     try {
+        //         clientSocket.close();
+        //     } catch (IOException ioe) {
+        //         System.out.println("IO: " + ioe);;
+        //     }
+        // }
      }
 }
 
