@@ -45,11 +45,21 @@ public class TCPClient {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
                     buffer = reader.nextLine(); // lê mensagem via teclado
                     
+                    String[] username = {user};
+                    if(buffer.startsWith("CONNECT")) {
+                    	username = buffer.split(" ");
+                    	username = username[1].split(",");
+                    }
+                    
                     out.writeUTF(buffer);      	// envia a mensagem para o servidor
                     
                     if (buffer.equals("PARAR")) break;
                     
                     buffer = in.readUTF();      // aguarda resposta do servidor
+                    
+                    if(buffer.equals("SUCCESS") && !username.equals(user)) {
+                    	user = username[0];
+                    }
                     
                     boolean isNumber = buffer.matches("[0-9]+");
                     
@@ -78,4 +88,3 @@ public class TCPClient {
         }
      } //main
 } //class
-
