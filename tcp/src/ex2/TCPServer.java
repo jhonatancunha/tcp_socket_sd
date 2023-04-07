@@ -121,6 +121,23 @@ class ClientThread extends Thread {
 			return ERROR;
 		}
 
+
+		public byte[] getFile(String filename){
+			byte[] response = null;
+			try {
+				String path = this.currentPath+"/"+filename;
+				File file = new File(path);
+
+				FileInputStream inputStream = new FileInputStream(file);
+				response = inputStream.readAllBytes();
+				inputStream.close();
+
+				return response;
+			} catch (Exception e) {
+				return response;
+			}
+		}
+
     /* metodo executado ao iniciar a thread - start() */
     @Override
     public void run() {
@@ -147,6 +164,8 @@ class ClientThread extends Thread {
 				
 
 					byte statusCode = ERROR;
+					byte[] responseContent = null;
+
 					switch(commandId){
 						case 1: // ADDFILE
 								statusCode = addFile(filename, "conteudo");
@@ -157,6 +176,7 @@ class ClientThread extends Thread {
 						case 3: // GETFILESLIST
 								break;
 						case 4: // GETFILE
+								responseContent = getFile(filename);
 								break;
 					}
 
@@ -164,10 +184,41 @@ class ClientThread extends Thread {
 					// Enviado cabeçalho de resposta com tamanho fixo
 					// ***********************************************
 					byte responseCode = 2;
-					ByteBuffer responseHeader = this.createResponseHeader(responseCode, commandId, statusCode);
-					bytes = responseHeader.array();
-					int size = responseHeader.limit();
-					out.write(bytes, 0, size);      
+					ByteBuffer buffer = this.createResponseHeader(responseCode, commandId, statusCode);
+					bytes = buffer.array();
+					int size = buffer.limit();
+					out.write(bytes, 0, size);
+					out.flush();
+					// ***********************************************
+					// Enviado conteudos do arquivos
+					// ***********************************************
+					
+
+					switch(commandId){
+						case 3: // GETFILESLIST
+								break;
+						case 4: // GETFILE
+							int sizeResponseContent;
+							if(responseContent == null) sizeResponseContent = 0;
+							else  sizeResponseContent = responseContent.length;
+							
+							buffer = ByteBuffer.allocate(4);
+							buffer.order(ByteOrder.BIG_ENDIAN);
+							buffer.putInt(sizeResponseContent);
+							bytes = buffer.array();
+							size = buffer.limit();
+							out.write(bytes, 0, size);
+							out.flush();
+						
+							for(int i = 0; i < sizeResponseContent; i++){
+								System.out.println("Enviou byte: " + responseContent[i]);
+								out.write(responseContent[i]);
+								out.flush();
+							}
+
+							break;
+					}
+
 				}
 			} catch (EOFException eofe) {
 					System.out.println("EOF: " + eofe.getMessage());

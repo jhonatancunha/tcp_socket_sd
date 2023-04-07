@@ -68,13 +68,13 @@ public class TCPClient {
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
             
                 /* protocolo de comunicação */
-                String buffer = "";
+                String keyboardBuffer = "";
                 byte[] bytes = null;
                 
                 loop:while (true) {
                     System.out.print(ANSI_GREEN+user+"$ "+ANSI_RESET);
-                    buffer = reader.nextLine(); // lê mensagem via teclado
-                    String[] argCommand = buffer.split(" ");
+                    keyboardBuffer = reader.nextLine(); // lê mensagem via teclado
+                    String[] argCommand = keyboardBuffer.split(" ");
                     
                     
                     String command = argCommand[0];
@@ -97,17 +97,21 @@ public class TCPClient {
                             commandId = 3;
                             break;
                         case "GETFILE":
+                            filename = argCommand[1];    
                             commandId = 4;
                             break;
+                        default:
+                            System.out.println("Comando desconhecido");
+                            continue;
                     }
 
                     byte filenameSize = (byte) filename.length();
-                    ByteBuffer header = createHeader(messageType, commandId, filenameSize, filename);
+                    ByteBuffer buffer = createHeader(messageType, commandId, filenameSize, filename);
 
-                    bytes = header.array();
-                    int size = header.limit();
+                    bytes = buffer.array();
+                    int size = buffer.limit();
                     out.write(bytes, 0, size);      	// envia o header para o servidor
-
+                    out.flush();
                     
 
                     // ***********************************
@@ -115,19 +119,50 @@ public class TCPClient {
                     // ***********************************
                     in.read(bytes);    
                     
-                    ByteBuffer responseHeader = ByteBuffer.wrap(bytes);
-                    responseHeader.order(ByteOrder.BIG_ENDIAN);
-                    byte responseMessageType = responseHeader.get(0);
-                    byte responseCommandId = responseHeader.get(1);
-                    byte responseStatusCode = responseHeader.get(2);
+                    buffer = ByteBuffer.wrap(bytes);
+                    buffer.order(ByteOrder.BIG_ENDIAN);
+                    byte responseMessageType = buffer.get(0);
+                    byte responseCommandId = buffer.get(1);
+                    byte responseStatusCode = buffer.get(2);
 
-                    // System.out.println("responseMessageType: "+ responseMessageType
-                    // +" responseCommandId: "+responseCommandId
-                    // +" responseStatusCode: "+responseStatusCode);          
+                    
+                    // ***********************************
+                    // Aguardando resposta do conteudo dos arquivos
+                    // ***********************************
+                    int sizeOfContent = 0;
+                    switch(command){
+                        case "GETFILELIST":
+                            in.read(bytes);
+                            buffer = ByteBuffer.wrap(bytes);
+                            buffer.order(ByteOrder.BIG_ENDIAN);
+                            sizeOfContent = buffer.getInt();
+                            break;
+                        case "GETFILE":
+                            in.read(bytes);
+                            buffer = ByteBuffer.wrap(bytes);
+                            buffer.order(ByteOrder.BIG_ENDIAN);
+                            sizeOfContent = buffer.getInt();
 
+                            System.out.println("sizeOfContent: "+sizeOfContent);
+                            
+                            bytes = new byte[1];
+                            byte[] contentByte = new byte[sizeOfContent];
+                            for(int i = 0; i < sizeOfContent; i++){
+                                in.read(bytes);
+                                byte b = bytes[0];
+                                contentByte[i] = b;
+                            }
 
-                    printResponseStatusCode(responseCommandId, responseStatusCode);
+                            String content = new String(contentByte);
+                            System.out.println(content);
+                            break;
+                        default:
+                            printResponseStatusCode(responseCommandId, responseStatusCode);
+                            break;
+                    }   
 
+                    
+                    
                     // boolean isNumber = buffer.matches("[0-9]+");
                     
                     // de acordo com a especificação da atividade alguns comandos retornam a quantidade de mensagens que irao enviar em seguida
