@@ -96,6 +96,7 @@ class ClientThread extends Thread {
 		header.put(0, messageType);
 		header.put(1, commandId);
 		header.put(2, statusCode);
+		logger.info("ResponseHeader criado");
 
 		return header;
 	}
@@ -106,12 +107,16 @@ class ClientThread extends Thread {
 
 		if (file.createNewFile()) {
 			FileWriter writer = new FileWriter(path, true);
+			logger.info("Criando arquivo");
 			BufferedWriter buffer = new BufferedWriter(writer);
+			logger.info("Escrevendo conteúdo no arquivo");
 			buffer.write(content);
 			buffer.flush();
 			buffer.close();
+			logger.info("Arquivo criado com sucesso");
 			return SUCCESS;
 		} else {
+			logger.warning("Erro ao criar arquivo");
 			return ERROR;
 		}
 	}
@@ -122,10 +127,12 @@ class ClientThread extends Thread {
 
 		if (file.exists()) {
 			if (file.delete()) {
+				logger.info("Arquivo deletado com sucesso");
 				return SUCCESS;
 			}
 		}
 
+		logger.warning("Erro ao deletar arquivo");
 		return ERROR;
 	}
 
@@ -137,6 +144,7 @@ class ClientThread extends Thread {
 		// create a new ArrayList
 		List<String> fileList = new ArrayList<String>();
 
+		logger.info("Obtendo arquivos do diretório");
 		for (File f : arrayFiles) {
 			if (f.isFile()) {
 				fileList.add(f.getName());
@@ -152,12 +160,15 @@ class ClientThread extends Thread {
 			String path = this.currentPath + "/" + filename;
 			File file = new File(path);
 
+			logger.info("Obtendo conteúdo do arquivo");
 			FileInputStream inputStream = new FileInputStream(file);
 			response = inputStream.readAllBytes();
+			logger.info("Fechando Stream de dados");
 			inputStream.close();
 
 			return response;
 		} catch (Exception e) {
+			logger.warning("Erro ao obter arquivo: " + e.getMessage());
 			return response;
 		}
 	}
@@ -166,12 +177,10 @@ class ClientThread extends Thread {
 	@Override
 	public void run() {
 		try {
-
-			System.out.println("args: " + this.currentPath);
-
 			int headerSize = 259;
 
 			while (true) {
+				logger.info("Criando e configurando header");
 				byte[] bytes = new byte[headerSize];
 				this.in.read(bytes);
 				ByteBuffer header = ByteBuffer.wrap(bytes);
@@ -188,7 +197,7 @@ class ClientThread extends Thread {
 
 				byte statusCode = ERROR;
 				byte[] responseContent = null;
-				List<String> getFilesListRespondeContent = null;
+				List<String> getFilesListResponseContent = null;
 
 				switch (commandId) {
 					case 1: // ADDFILE
@@ -198,7 +207,7 @@ class ClientThread extends Thread {
 						statusCode = removeFile(filename);
 						break;
 					case 3: // GETFILESLIST
-						getFilesListRespondeContent = getFilesList(this.currentPath);
+						getFilesListResponseContent = getFilesList(this.currentPath);
 						break;
 					case 4: // GETFILE
 						responseContent = getFile(filename);
@@ -208,6 +217,7 @@ class ClientThread extends Thread {
 				// ***********************************************
 				// Enviado cabeçalho de resposta com tamanho fixo
 				// ***********************************************
+				logger.info("Enviando header de resposta de tamanho fixo");
 				byte responseCode = 2;
 				ByteBuffer buffer = this.createResponseHeader(responseCode, commandId, statusCode);
 				bytes = buffer.array();
@@ -217,15 +227,17 @@ class ClientThread extends Thread {
 				// ***********************************************
 				// Enviado conteudos do arquivos
 				// ***********************************************
-
+				logger.info("Enviando conteúdo");
 				switch (commandId) {
 					case 3: // GETFILESLIST
+						logger.info("Iniciando envio da resposta do comando GETFILELIST");
 						int listOfFilesSize;
-						if (getFilesListRespondeContent == null)
+						if (getFilesListResponseContent == null)
 							listOfFilesSize = 0;
 						else
-							listOfFilesSize = getFilesListRespondeContent.size();
+							listOfFilesSize = getFilesListResponseContent.size();
 
+						logger.info("Criando e adicionando dados no buffer");
 						buffer = ByteBuffer.allocate(2);
 						buffer.put((byte) ((listOfFilesSize >> 8) & 0xFF)); // INSERINDO BYTE MAIS SIGNIFICATIVO
 						buffer.put((byte) (listOfFilesSize & 0xFF)); // INSERINDO BYTE MENOS SIGNIFICATIVO
@@ -236,15 +248,16 @@ class ClientThread extends Thread {
 						out.write(bytes, 0, size);
 						out.flush();
 
-						for (String fileName : getFilesListRespondeContent) {
+						for (String fileName : getFilesListResponseContent) {
 							byte[] filenameInBytes = fileName.getBytes();
 							byte filenameLength = (byte) fileName.length();
 
 							out.write(filenameLength);
 							out.flush();
 
+							logger.info("Enviando nomes dos arquivos byte a byte");
 							for (int i = 0; i < filenameLength; i++) {
-								System.out.println("Enviou byte: " + filenameInBytes[i]);
+								logger.info("Enviou byte: " + filenameInBytes[i]);
 								out.write(filenameInBytes[i]);
 								out.flush();
 							}
@@ -252,12 +265,14 @@ class ClientThread extends Thread {
 
 						break;
 					case 4: // GETFILE
+						logger.info("Iniciando envio da resposta do comando GETFILE");
 						int sizeResponseContent;
 						if (responseContent == null)
 							sizeResponseContent = 0;
 						else
 							sizeResponseContent = responseContent.length;
 
+						logger.info("Criando e adicionando dados no buffer");
 						buffer = ByteBuffer.allocate(4);
 						buffer.order(ByteOrder.BIG_ENDIAN);
 						buffer.putInt(sizeResponseContent);
@@ -266,8 +281,9 @@ class ClientThread extends Thread {
 						out.write(bytes, 0, size);
 						out.flush();
 
+						logger.info("Enviando conteúdo do arquivo byte a byte");
 						for (int i = 0; i < sizeResponseContent; i++) {
-							System.out.println("Enviou byte: " + responseContent[i]);
+							logger.info("Enviou byte: " + responseContent[i]);
 							out.write(responseContent[i]);
 							out.flush();
 						}
@@ -277,18 +293,24 @@ class ClientThread extends Thread {
 
 			}
 		} catch (EOFException eofe) {
+			logger.info("End Of File Exception: " + eofe.getMessage());
 			System.out.println("EOF: " + eofe.getMessage());
 		} catch (IOException ioe) {
+			logger.info("I/O Exception: " + ioe.getMessage());
 			System.out.println("IOE: " + ioe.getMessage());
 		} finally {
 			try {
+				logger.info("Fechando conexão");
 				in.close();
 				out.close();
 				clientSocket.close();
 			} catch (IOException ioe) {
+				logger.info("I/O Exception ao fechar conexão: " + ioe.getMessage());
 				System.err.println("IOE: " + ioe);
 			}
 		}
+
+		logger.info("Thread comunicação cliente finalizada.");
 		System.out.println("Thread comunicação cliente finalizada.");
 	}
 }
