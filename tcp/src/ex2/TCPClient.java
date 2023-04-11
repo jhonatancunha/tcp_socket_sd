@@ -51,6 +51,30 @@ public class TCPClient {
         }
     }
 
+    public static int saveFile(String filename, String content) throws IOException {
+        String defaultPath = System.getProperty("user.dir") + "/src/ex2/downloads";
+        File theDir = new File(defaultPath);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
+        
+		
+        String path = defaultPath + "/" + filename;
+		File file = new File(path);
+
+		if (file.createNewFile()) {
+			FileWriter writer = new FileWriter(path, true);
+			BufferedWriter buffer = new BufferedWriter(writer);
+			buffer.write(content);
+			buffer.flush();
+			buffer.close();
+
+            return 1;
+		} else {
+			return 0;
+		}
+	}
+
     public static void main(String args[]) {
         Socket clientSocket = null; // socket do cliente
         Scanner reader = new Scanner(System.in);
@@ -162,6 +186,8 @@ public class TCPClient {
 
                         String content = new String(contentByte);
                         System.out.println(content);
+                        saveFile(filename, content);
+                        
                         break;
                     default:
                         printResponseStatusCode(responseCommandId, responseStatusCode);

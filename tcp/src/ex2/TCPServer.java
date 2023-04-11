@@ -74,13 +74,13 @@ class ClientThread extends Thread {
 			in = new DataInputStream(clientSocket.getInputStream());
 			out = new DataOutputStream(clientSocket.getOutputStream());
 
-			File theDir = new File("./src/ex2/jhonatan");
+			File theDir = new File("./ex2/jhonatan");
 			if (!theDir.exists()) {
 				theDir.mkdirs();
 			}
 
 			// aqui devemos concatenar o nome da pasta do usuario
-			this.currentPath = System.getProperty("user.dir") + "/src/ex2/jhonatan";
+			this.currentPath = System.getProperty("user.dir") + "/ex2/jhonatan";
 		} catch (IOException ioe) {
 			System.out.println("Connection:" + ioe.getMessage());
 		} // catch
