@@ -127,6 +127,7 @@ class ClientThread extends Thread {
 	}
 
 	public List<String> getFilesList(String directory) {
+		System.out.println(directory);
 		File dir = new File(directory);
 		File[] arrayFiles = dir.listFiles();
 
@@ -222,19 +223,22 @@ class ClientThread extends Thread {
 						else
 							listOfFilesSize = getFilesListRespondeContent.size();
 
-						buffer = ByteBuffer.allocate(4);
-						buffer.order(ByteOrder.BIG_ENDIAN);
-						buffer.putInt(listOfFilesSize);
+						buffer = ByteBuffer.allocate(2);
+						buffer.put((byte) ((listOfFilesSize >> 8) & 0xFF)); // INSERINDO BYTE MAIS SIGNIFICATIVO
+						buffer.put((byte) (listOfFilesSize & 0xFF)); // INSERINDO BYTE MENOS SIGNIFICATIVO
+
 						bytes = buffer.array();
 						size = buffer.limit();
+
 						out.write(bytes, 0, size);
 						out.flush();
 
 						for (String fileName : getFilesListRespondeContent) {
 							byte[] filenameInBytes = fileName.getBytes();
-							int filenameLength = fileName.length();
+							byte filenameLength = (byte) fileName.length();
 
-							out.write((byte) filenameLength);
+							out.write(filenameLength);
+							out.flush();
 
 							for (int i = 0; i < filenameLength; i++) {
 								System.out.println("Enviou byte: " + filenameInBytes[i]);

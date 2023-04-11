@@ -10,6 +10,8 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class TCPClient {
@@ -57,23 +59,22 @@ public class TCPClient {
         if (!theDir.exists()) {
             theDir.mkdirs();
         }
-        
-		
-        String path = defaultPath + "/" + filename;
-		File file = new File(path);
 
-		if (file.createNewFile()) {
-			FileWriter writer = new FileWriter(path, true);
-			BufferedWriter buffer = new BufferedWriter(writer);
-			buffer.write(content);
-			buffer.flush();
-			buffer.close();
+        String path = defaultPath + "/" + filename;
+        File file = new File(path);
+
+        if (file.createNewFile()) {
+            FileWriter writer = new FileWriter(path, true);
+            BufferedWriter buffer = new BufferedWriter(writer);
+            buffer.write(content);
+            buffer.flush();
+            buffer.close();
 
             return 1;
-		} else {
-			return 0;
-		}
-	}
+        } else {
+            return 0;
+        }
+    }
 
     public static void main(String args[]) {
         Socket clientSocket = null; // socket do cliente
@@ -153,18 +154,41 @@ public class TCPClient {
                 int sizeOfContent = 0;
                 switch (command) {
                     case "GETFILELIST":
-                        in.read(bytes);
-                        buffer = ByteBuffer.wrap(bytes);
+                        bytes = new byte[1];
+                        byte[] numberOfFilesInBytes = new byte[2];
+
+                        for (int i = 0; i < 2; i++) {
+                            in.read(bytes);
+                            numberOfFilesInBytes[i] = bytes[0];
+                        }
+
+                        buffer = ByteBuffer.wrap(numberOfFilesInBytes);
                         buffer.order(ByteOrder.BIG_ENDIAN);
-                        sizeOfContent = buffer.getInt();
+                        sizeOfContent = buffer.getShort();
+
+                        // create a new ArrayList
+                        List<String> fileList = new ArrayList<String>();
 
                         bytes = new byte[1];
-                        byte[] filenamesContentByte = new byte[sizeOfContent];
 
                         for (int i = 0; i < sizeOfContent; i++) {
                             in.read(bytes);
-                            byte b = bytes[0];
-                            filenamesContentByte[i] = b;
+                            byte filenameLength = bytes[0];
+                            byte[] filenameNameInBytes = new byte[filenameLength];
+
+                            for (int j = 0; j < filenameLength; j++) {
+                                in.read(bytes);
+                                filenameNameInBytes[j] = bytes[0];
+                            }
+
+                            String name = new String(filenameNameInBytes);
+                            fileList.add(name);
+                        }
+
+                        System.out.printf("Quantidade de arquivos %d\n", fileList.size());
+
+                        for (String name : fileList) {
+                            System.out.println(name);
                         }
 
                         break;
@@ -187,40 +211,17 @@ public class TCPClient {
                         String content = new String(contentByte);
                         System.out.println(content);
                         saveFile(filename, content);
-                        
+
                         break;
                     default:
                         printResponseStatusCode(responseCommandId, responseStatusCode);
                         break;
                 }
 
-                // boolean isNumber = buffer.matches("[0-9]+");
-
-                // de acordo com a especificação da atividade alguns comandos retornam a
-                // quantidade de mensagens que irao enviar em seguida
-                // if(isNumber) {
-                // int amountOfMessages = Integer.parseInt(buffer);
-                // while(amountOfMessages > 0) {
-                // buffer = in.readUTF();
-                // System.out.println(buffer);
-                // amountOfMessages--;
-                // }
-
-                // }else {
-                // System.out.println(buffer);
-                // }
             }
 
         } catch (Exception ue) {
             System.out.println("Socket:" + ue.getMessage());
         }
-        // finally {
-        // reader.close();
-        // try {
-        // clientSocket.close();
-        // } catch (IOException ioe) {
-        // System.out.println("IO: " + ioe);;
-        // }
-        // }
     }
 }
