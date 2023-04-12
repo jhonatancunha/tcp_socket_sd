@@ -7,18 +7,12 @@ package ex2;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.io.*;
+
+import java.util.logging.*;
 
 public class TCPServer {
 
@@ -56,6 +50,8 @@ public class TCPServer {
  * aguarda msgs clientes e responde com a msg + :OK
  */
 class ClientThread extends Thread {
+	private static final Logger logger = Logger.getLogger("tcp");
+
 	private static final byte SUCCESS = 1;
 	private static final byte ERROR = 2;
 
@@ -70,6 +66,11 @@ class ClientThread extends Thread {
 
 	public ClientThread(Socket clientSocket) {
 		try {
+
+			FileHandler fileHandler = new FileHandler("./ex2/tcp.log");
+			fileHandler.setFormatter(new SimpleFormatter());
+			logger.addHandler(fileHandler);
+
 			this.clientSocket = clientSocket;
 			in = new DataInputStream(clientSocket.getInputStream());
 			out = new DataOutputStream(clientSocket.getOutputStream());
@@ -78,6 +79,8 @@ class ClientThread extends Thread {
 			if (!theDir.exists()) {
 				theDir.mkdirs();
 			}
+
+			logger.info("Cliente se conectou");
 
 			// aqui devemos concatenar o nome da pasta do usuario
 			this.currentPath = System.getProperty("user.dir") + "/ex2/jhonatan";
