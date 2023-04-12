@@ -1,9 +1,14 @@
 package ex2;
 
 /**
- * TCPClient: Cliente para conexao TCP
+ * Descrição: Cliente para conexao TCP
  * Descricao: Envia uma informacao ao servidor e recebe confirmações ECHO
  * Ao enviar "PARAR", a conexão é finalizada.
+ * 
+ * Autores: Jhonantan Guilherme de Oliveira Cunha, Jessé Pires Barbato Rocha
+ * 
+ * Data de criação: 17/03/2023
+ * Data última atualização: 11/04/2023
  */
 
 import java.net.*;

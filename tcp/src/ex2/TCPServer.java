@@ -1,8 +1,13 @@
 package ex2;
 
 /**
- * TCPServer: Servidor para conexao TCP com Threads Descricao: Recebe uma
- * conexao, cria uma thread, recebe uma mensagem e finaliza a conexao
+ * Descrição: Servidor para conexao TCP com Threads Descricao: Recebe uma
+ * conexao, cria uma thread, recebe uma mensagem e finaliza a conexao.
+ * 
+ * Autores: Jhonantan Guilherme de Oliveira Cunha, Jessé Pires Barbato Rocha
+ * 
+ * Data de criação: 17/03/2023
+ * Data última atualização: 11/04/2023
  */
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -48,9 +53,14 @@ public class TCPServer {
 } // class
 
 /**
- * Classe ClientThread: Thread responsavel pela comunicacao
+ * Descrição: Thread responsavel pela comunicacao
  * Descricao: Recebe um socket, cria os objetos de leitura e escrita,
  * aguarda msgs clientes e responde com a msg + :OK
+ * 
+ * Autores: Jhonantan Guilherme de Oliveira Cunha, Jessé Pires Barbato Rocha
+ * 
+ * Data de criação: 17/03/2023
+ * Data última atualização: 11/04/2023
  */
 class ClientThread extends Thread {
 	private static final Logger logger = Logger.getLogger("tcp");
