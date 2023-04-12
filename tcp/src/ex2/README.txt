@@ -10,7 +10,7 @@
   execute: 
     java ex2/TCPServer
 
-      e depois
+      e depois em outro terminal
 
     java ex2/TCPClient
   
