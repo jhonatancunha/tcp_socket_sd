@@ -24,11 +24,13 @@ public class TCPServer {
 			ServerSocket listenSocket = new ServerSocket(serverPort);
 
 			while (true) {
+				logger.info("Servidor aguardando conexao ...");
 				System.out.println("Servidor aguardando conexao ...");
 
 				/* aguarda conexoes */
 				Socket clientSocket = listenSocket.accept();
 
+				logger.info("Cliente conectado ... Criando thread ...");
 				System.out.println("Cliente conectado ... Criando thread ...");
 
 				/* cria um thread para atender a conexao */
@@ -39,6 +41,7 @@ public class TCPServer {
 			} // while
 
 		} catch (IOException e) {
+			logger.info("Listen socket:" + e.getMessage());
 			System.out.println("Listen socket:" + e.getMessage());
 		} // catch
 	} // main
@@ -85,6 +88,7 @@ class ClientThread extends Thread {
 			// aqui devemos concatenar o nome da pasta do usuario
 			this.currentPath = System.getProperty("user.dir") + "/ex2/jhonatan";
 		} catch (IOException ioe) {
+			logger.info("Connection:" + ioe.getMessage());
 			System.out.println("Connection:" + ioe.getMessage());
 		} // catch
 	} // construtor
